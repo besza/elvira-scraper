@@ -1,0 +1,38 @@
+"%dev":
+  quarkus:
+    log:
+      category:
+        "com.besza":
+          level: DEBUG
+    datasource:
+      username: postgres
+      password: secret
+    hibernate-orm:
+      database:
+        generation: drop-and-create
+  app:
+    scraper:
+      cron: "0 * * * * ?"
+    database:
+      host: localhost
+
+quarkus:
+  package:
+    type: uber-jar
+  datasource:
+    db-kind: postgresql
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
+    jdbc:
+      url: jdbc:postgresql://${app.database.host}:5432/postgres
+  hibernate-orm:
+    jdbc:
+      timezone: UTC
+      statement-batch-size: 30
+    database:
+      generation: update
+app:
+  database:
+    host: ${PGHOST}
+  scraper:
+    cron: "0 30 22 * * ?"

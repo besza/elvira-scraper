@@ -7,9 +7,6 @@
     datasource:
       username: postgres
       password: secret
-    hibernate-orm:
-      database:
-        generation: drop-and-create
   app:
     scraper:
       cron: "0 * * * * ?"
@@ -29,8 +26,12 @@ quarkus:
     jdbc:
       timezone: UTC
       statement-batch-size: 30
-    database:
-      generation: update
+  flyway:
+    migrate-at-start: true
+    validate-on-migrate: true
+    baseline-on-migrate: true
+    baseline-version: 202101021844
+
 app:
   database:
     host: ${PGHOST}

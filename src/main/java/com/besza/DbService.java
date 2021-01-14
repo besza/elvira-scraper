@@ -35,6 +35,6 @@ public class DbService {
     }
 
     public List<TimetableBE> findAll() {
-        return TimetableBE.listAll(Sort.ascending("origin", "plannedDeparture"));
+        return TimetableBE.listAll(Sort.descending("plannedDeparture"));
     }
 }

@@ -1,11 +1,15 @@
 package com.besza;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import io.quarkus.hibernate.orm.panache.PanacheEntity;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.PostLoad;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -15,7 +19,12 @@ import java.time.Duration;
 @Entity
 @Table(name = "mav_timetable")
 @JsonPropertyOrder(value = {"origin, plannedDeparture, departure, destination, plannedArrival, arrival, delay"})
-public class TimetableBE extends PanacheEntity {
+public class TimetableBE extends PanacheEntityBase {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
+    public Long id;
 
     @Column(nullable = false)
     public String origin;

@@ -1,6 +1,6 @@
 create table mav_timetable
 (
-    id serial primary key,
+    id integer primary key,
     origin text not null,
     destination text not null,
     planned_departure timestamp not null,

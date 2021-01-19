@@ -9,11 +9,18 @@ import org.jsoup.select.Elements;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -21,6 +28,8 @@ import java.util.stream.Stream;
 public class ElviraScraper {
 
     private static final Logger LOG = Logger.getLogger(ElviraScraper.class.getName());
+
+    private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     @Inject
     DbService dbService;
@@ -31,7 +40,7 @@ public class ElviraScraper {
             delay = 5,
             durationUnit = ChronoUnit.MINUTES,
             delayUnit = ChronoUnit.MINUTES)
-    void scheduledScrape() throws IOException {
+    void scheduledScrape() throws IOException, InterruptedException {
         LOG.info("Starting scheduled job at " + Instant.now());
         scrape("Szolnok", "BUDAPEST*");
         scrape("Nyíregyháza", "BUDAPEST*");
@@ -39,27 +48,38 @@ public class ElviraScraper {
     }
 
 
-    private void scrape(String origin, String destination) throws IOException {
+    private void scrape(String origin, String destination) throws InterruptedException, IOException {
         var currentLocalDate = LocalDate.now();
         var formatter = DateTimeFormatter.ofPattern("yy.MM.dd");
         var textDate = currentLocalDate.format(formatter);
 
-        final var html = Jsoup.connect("https://elvira.mav-start.hu/elvira.dll/x/uf")
-                .data("go", "Timetable")
-                .data("language", "2")
-                .data("_charset_", "UTF-8")
-                .data("i", origin)
-                .data("e", destination)
-                .data("isz", "0")
-                .data("mikor", "-1")
-                .data("d", textDate)
-                // I have no clue about what the following query params do (one of them is `Direct connection`)
-                .data("u", "1156")
-                .data("sk", "5")
-                .get();
+        var queryParams = Map.of(
+                "go", "Timetable",
+                "i", origin,
+                "e", destination,
+                "isz", "0",
+                "mikor", "-1",
+                "d", textDate,
+                "sk", "5"
+        );
 
-        var result =
-                html.select("div[id^=info] > table > tbody")
+        var elvira = new StringBuilder("https://elvira.mav-start.hu/elvira.dll/x/uf?");
+
+        // we don't care about the trailing ampersand
+        queryParams.forEach((k, v) -> elvira.append("%s=%s&".formatted(k, v)));
+
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create(elvira.toString()))
+                .timeout(Duration.ofMinutes(1L))
+                // masking the default UA
+                .setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0")
+                .GET()
+                .build();
+
+        var response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.ISO_8859_1));
+
+        var result = Jsoup.parse(response.body())
+                .select("div[id^=info] > table > tbody")
                         .stream()
                         .map(tBody -> Stream.of(
                                     foo(tBody.select("tr.sh00").first().select("td")),

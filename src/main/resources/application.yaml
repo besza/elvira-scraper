@@ -21,7 +21,7 @@ quarkus:
     username: ${PGUSER}
     password: ${PGPASSWORD}
     jdbc:
-      url: jdbc:postgresql://${app.database.host}:5432/postgres
+      url: jdbc:postgresql://${app.database.host}:5432/postgres?reWriteBatchedInserts=true
   hibernate-orm:
     jdbc:
       timezone: UTC

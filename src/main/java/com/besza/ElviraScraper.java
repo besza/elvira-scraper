@@ -1,14 +1,14 @@
 package com.besza;
 
 import io.quarkus.scheduler.Scheduled;
-import org.eclipse.microprofile.faulttolerance.Retry;
+import org.eclipse.microprofile.context.ManagedExecutor;
+import org.eclipse.microprofile.context.ThreadContext;
 import org.jboss.logging.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.select.Elements;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -18,7 +18,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,28 +26,42 @@ import java.util.stream.Stream;
 @ApplicationScoped
 public class ElviraScraper {
 
-    private static final Logger LOG = Logger.getLogger(ElviraScraper.class.getName());
+    private static final Logger log = Logger.getLogger(ElviraScraper.class.getName());
 
-    private static final HttpClient CLIENT = HttpClient.newHttpClient();
+    private static final HttpClient client = HttpClient.newHttpClient();
 
     @Inject
     DbService dbService;
 
+    @Inject
+    ThreadContext threadContext;
+
+    @Inject
+    ManagedExecutor executor;
+
     @Scheduled(cron = "{app.scraper.cron}")
-    @Retry(retryOn = IOException.class,
-            maxDuration = 20,
-            delay = 5,
-            durationUnit = ChronoUnit.MINUTES,
-            delayUnit = ChronoUnit.MINUTES)
-    void scheduledScrape() throws IOException, InterruptedException {
-        LOG.info("Starting scheduled job at " + Instant.now());
-        scrape("Szolnok", "BUDAPEST*");
+    void scheduledScrape() {
+        scrape("Esztergom", "BUDAPEST*");
+        scrape("Hatvan", "BUDAPEST*");
         scrape("Nyíregyháza", "BUDAPEST*");
-        LOG.info("Finished scheduled job at " + Instant.now());
+        scrape("Székesfehérvár", "BUDAPEST*");
+        scrape("Szob", "BUDAPEST*");
+        scrape("Szolnok", "BUDAPEST*");
+        scrape("BUDAPEST*", "Esztergom");
+        scrape("BUDAPEST*", "Hatvan");
+        scrape("BUDAPEST*", "Nyíregyháza");
+        scrape("BUDAPEST*", "Székesfehérvár");
+        scrape("BUDAPEST*", "Szob");
+        scrape("BUDAPEST*", "Szolnok");
     }
 
+    private void scrape(String origin, String destination) {
+        threadContext.withContextCapture(client.sendAsync(buildRequest(origin, destination), HttpResponse.BodyHandlers.ofString(StandardCharsets.ISO_8859_1)))
+                .thenApplyAsync(response -> parse(response.body()), executor)
+                .thenAcceptAsync(entities -> dbService.save(entities), executor);
+    }
 
-    private void scrape(String origin, String destination) throws InterruptedException, IOException {
+    private HttpRequest buildRequest(String origin, String destination) {
         var currentLocalDate = LocalDate.now();
         var formatter = DateTimeFormatter.ofPattern("yy.MM.dd");
         var textDate = currentLocalDate.format(formatter);
@@ -68,29 +81,26 @@ public class ElviraScraper {
         // we don't care about the trailing ampersand
         queryParams.forEach((k, v) -> elvira.append("%s=%s&".formatted(k, v)));
 
-        var request = HttpRequest.newBuilder()
+        return HttpRequest.newBuilder()
                 .uri(URI.create(elvira.toString()))
-                .timeout(Duration.ofMinutes(1L))
+                .timeout(Duration.ofSeconds(30L))
                 // masking the default UA
                 .setHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:84.0) Gecko/20100101 Firefox/84.0")
                 .GET()
                 .build();
+    }
 
-        var response = CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.ISO_8859_1));
-
-        var result = Jsoup.parse(response.body())
+    private List<TimetableDTO> parse(final String html) {
+        return Jsoup.parse(html)
                 .select("div[id^=info] > table > tbody")
-                        .stream()
-                        .map(tBody -> Stream.of(
-                                    foo(tBody.select("tr.sh00").first().select("td")),
-                                    foo(tBody.select("tr.sh01 > td")))
-                                .flatMap(List::stream)
-                                .toArray(String[]::new))
-                        .map(TimetableDTO::new)
-                        .collect(Collectors.toList());
-
-        LOG.debug(result);
-        dbService.save(result);
+                .stream()
+                .map(tBody -> Stream.of(
+                        foo(tBody.select("tr.sh00").first().select("td")),
+                        foo(tBody.select("tr.sh01 > td")))
+                        .flatMap(List::stream)
+                        .toArray(String[]::new))
+                .map(TimetableDTO::new)
+                .collect(Collectors.toList());
     }
 
     // Extracts the first 3 values from the html table row

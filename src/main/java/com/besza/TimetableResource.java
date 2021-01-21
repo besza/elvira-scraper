@@ -6,7 +6,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RequestScoped
 @Path("mav")
@@ -21,4 +25,12 @@ public class TimetableResource {
         return dbService.findAll();
     }
 
+    @GET
+    @Path("/routes")
+    public Map<String, Set<String>> getRoutes() {
+        Map<String, Set<String>> routes = new HashMap<>();
+        dbService.findAll().forEach(
+                timetableBE -> routes.computeIfAbsent(timetableBE.origin, key -> new HashSet<>()).add(timetableBE.destination));
+        return routes;
+    }
 }

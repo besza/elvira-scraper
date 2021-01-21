@@ -1,13 +1,12 @@
 package com.besza;
 
-import io.quarkus.panache.common.Sort;
-
 import javax.enterprise.context.RequestScoped;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 @RequestScoped
 @Transactional
@@ -35,6 +34,12 @@ public class DbService {
     }
 
     public List<TimetableBE> findAll() {
-        return TimetableBE.listAll(Sort.descending("plannedDeparture"));
+        return TimetableBE.listAll();
+    }
+
+    public List<TimetableBE> findByOriginAndDestination(String origin, String destination) {
+        Objects.requireNonNull(origin);
+        Objects.requireNonNull(destination);
+        return TimetableBE.find("origin = ?1 and destination = ?2", origin, destination).list();
     }
 }

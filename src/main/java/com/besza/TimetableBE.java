@@ -1,8 +1,5 @@
 package com.besza;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 import javax.persistence.Column;
@@ -18,32 +15,26 @@ import java.time.Duration;
 
 @Entity
 @Table(name = "mav_timetable")
-@JsonPropertyOrder(value = {"origin, plannedDeparture, departure, destination, plannedArrival, arrival, delay"})
 public class TimetableBE extends PanacheEntityBase {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @JsonIgnore
     public Long id;
 
     @Column(nullable = false)
     public String origin;
 
     @Column(name = "planned_departure", nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm")
     public Timestamp plannedDeparture;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm")
     public Timestamp departure;
 
     @Column(nullable = false)
     public String destination;
 
     @Column(name = "planned_arrival", nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm")
     public Timestamp plannedArrival;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy.MM.dd HH:mm")
     public Timestamp arrival;
 
     @Transient

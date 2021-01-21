@@ -5,6 +5,7 @@ import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,9 +21,17 @@ public class TimetableResource {
     @Inject
     DbService dbService;
 
+    @Inject
+    TimetableMapper mapper;
+
     @GET
-    public List<TimetableBE> getAll() {
-        return dbService.findAll();
+    public List<TimetableDTO> getAll(@QueryParam("from") String origin,
+                                    @QueryParam("to") String destination) {
+        if (origin != null && destination != null) {
+            return mapper.map(dbService.findByOriginAndDestination(origin, destination));
+        } else {
+            return mapper.map(dbService.findAll());
+        }
     }
 
     @GET

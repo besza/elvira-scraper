@@ -1,12 +1,20 @@
 package com.besza;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder(value = {"origin, plannedDeparture, departure, destination, plannedArrival, arrival, delayMinutes"})
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class TimetableDTO {
-    private final String origin;
-    private final String plannedDeparture;
-    private final String departure;
-    private final String destination;
-    private final String plannedArrival;
-    private final String arrival;
+    private String origin;
+    private String plannedDeparture;
+    private String departure;
+    private String destination;
+    private String plannedArrival;
+    private String arrival;
+    private Long delayMinutes;
+
+    public TimetableDTO() {}
 
     public TimetableDTO(String[] arr) {
         if (arr == null || arr.length < 6) {
@@ -42,6 +50,38 @@ public final class TimetableDTO {
 
     public String getArrival() {
         return arrival;
+    }
+
+    public Long getDelayMinutes() {
+        return delayMinutes;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public void setPlannedDeparture(String plannedDeparture) {
+        this.plannedDeparture = plannedDeparture;
+    }
+
+    public void setDeparture(String departure) {
+        this.departure = departure;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public void setPlannedArrival(String plannedArrival) {
+        this.plannedArrival = plannedArrival;
+    }
+
+    public void setArrival(String arrival) {
+        this.arrival = arrival;
+    }
+
+    public void setDelayMinutes(long delayMinutes) {
+        this.delayMinutes = delayMinutes;
     }
 
     @Override

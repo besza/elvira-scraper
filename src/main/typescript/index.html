@@ -7,6 +7,23 @@
     <title>mav</title>
 
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+
+    <style>
+      @import url('https://fonts.googleapis.com/css?family=Lato:400,700&display=swap');
+
+      html { font-family: 'Lato', sans-serif; font-size: 16px; }
+
+      body { margin: 0; padding: 1rem; }
+
+      .container {
+        display: grid;
+        grid-template-columns: 20rem 1fr;
+      }
+
+      .chart {
+        height: calc(min(100vh - 2rem, 600px));
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

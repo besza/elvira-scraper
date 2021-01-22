@@ -1,7 +1,10 @@
 package com.besza;
 
+import org.jboss.resteasy.annotations.GZIP;
+
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -16,6 +19,7 @@ import java.util.Set;
 @RequestScoped
 @Path("mav")
 @Produces(MediaType.APPLICATION_JSON)
+@GZIP
 public class TimetableResource {
 
     @Inject
@@ -28,9 +32,9 @@ public class TimetableResource {
     public List<TimetableDTO> getAll(@QueryParam("from") String origin,
                                     @QueryParam("to") String destination) {
         if (origin != null && destination != null) {
-            return mapper.map(dbService.findByOriginAndDestination(origin, destination));
+            return mapper.mapSimple(dbService.findByOriginAndDestination(origin, destination));
         } else {
-            return mapper.map(dbService.findAll());
+            throw new BadRequestException("Missing query params: from, to");
         }
     }
 

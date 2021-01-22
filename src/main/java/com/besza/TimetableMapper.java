@@ -1,10 +1,11 @@
 package com.besza;
 
+import org.mapstruct.IterableMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "cdi")
 public interface TimetableMapper {
@@ -13,9 +14,20 @@ public interface TimetableMapper {
     @Mapping(source = "plannedArrival", target = "plannedArrival", dateFormat = "yyyy.MM.dd HH:mm")
     @Mapping(source = "arrival", target = "arrival", dateFormat = "yyyy.MM.dd HH:mm")
     @Mapping(source = "departure", target = "departure", dateFormat = "yyyy.MM.dd HH:mm")
-    TimetableDTO map(TimetableBE timetableBE);
+    TimetableDTO map(TimetableBE entity);
 
-    default List<TimetableDTO> map(List<TimetableBE> list) {
-        return list.stream().map(this::map).collect(Collectors.toList());
-    }
+    @Named("simple")
+    @Mapping(source = "plannedDeparture", target = "plannedDeparture", dateFormat = "yyyy.MM.dd HH:mm")
+    @Mapping(target = "plannedArrival", ignore = true)
+    @Mapping(target = "arrival", ignore = true)
+    @Mapping(target = "departure", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    TimetableDTO mapSimple(TimetableBE entity);
+
+    List<TimetableDTO> map(List<TimetableBE> entities);
+
+    @IterableMapping(qualifiedByName = "simple")
+    List<TimetableDTO> mapSimple(List<TimetableBE> entities);
+
 }

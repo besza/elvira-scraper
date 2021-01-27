@@ -49,6 +49,7 @@ function collectChartData(trains: ReadonlyArray<Train>): ChartData {
       fill: false,
       label: time,
       hidden,
+      cubicInterpolationMode: "monotone" as "monotone",
       data
     }
   })

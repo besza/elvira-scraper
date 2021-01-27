@@ -3,8 +3,10 @@ package com.besza;
 import javax.enterprise.context.RequestScoped;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,6 +42,7 @@ public class DbService {
     public List<TimetableBE> findByOriginAndDestination(String origin, String destination) {
         Objects.requireNonNull(origin);
         Objects.requireNonNull(destination);
-        return TimetableBE.find("origin = ?1 and destination = ?2", origin, destination).list();
+        return TimetableBE.find("origin = ?1 and destination = ?2 and plannedDeparture >= ?3",
+                origin, destination, Timestamp.from(Instant.now().minus(28, ChronoUnit.DAYS))).list();
     }
 }

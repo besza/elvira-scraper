@@ -43,6 +43,7 @@ function collectChartData(trains: ReadonlyArray<Train>): ChartData {
   const entries = Object.entries(dataByTime)
   entries.sort(([a], [b]) => a < b ? -1 : 1)
   const datasets = entries.map(([time, data], index) => {
+    data.sort((a, b) => (a.t || "") < (b.t || "") ? -1 : 1)
     const hidden = time < "09:00" || time >= "17:00"
     return {
       borderColor: colors[index % colors.length],

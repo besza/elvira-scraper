@@ -1,5 +1,7 @@
 package com.besza;
 
+import io.quarkus.panache.common.Sort;
+
 import javax.enterprise.context.RequestScoped;
 import javax.transaction.Transactional;
 import java.sql.Timestamp;
@@ -43,6 +45,7 @@ public class DbService {
         Objects.requireNonNull(origin);
         Objects.requireNonNull(destination);
         return TimetableBE.find("origin = ?1 and destination = ?2 and plannedDeparture >= ?3",
+                Sort.by("plannedDeparture"),
                 origin, destination, Timestamp.from(Instant.now().minus(28, ChronoUnit.DAYS))).list();
     }
 }

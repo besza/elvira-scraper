@@ -6,10 +6,10 @@
           level: DEBUG
     datasource:
       username: postgres
-      password: secret
+      password: postgres
   app:
     scraper:
-      cron: "0 * * * * ?"
+      cron: "0 */1 * * * ?"
     database:
       host: localhost
 
@@ -40,4 +40,4 @@ app:
   database:
     host: ${PGHOST}
   scraper:
-    cron: "0 30 22 * * ?"
+    cron: "0 30 21 * * ?"

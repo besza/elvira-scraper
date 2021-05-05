@@ -39,7 +39,7 @@ public class TimetableResource {
     }
 
     @GET
-    @Path("/routes")
+    @Path("routes")
     public Map<String, Set<String>> getRoutes() {
         Map<String, Set<String>> routes = new HashMap<>();
         dbService.findAll().forEach(

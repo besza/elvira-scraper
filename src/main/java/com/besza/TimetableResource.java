@@ -42,7 +42,7 @@ public class TimetableResource {
     @Path("routes")
     public Map<String, Set<String>> getRoutes() {
         Map<String, Set<String>> routes = new HashMap<>();
-        dbService.findAll().forEach(
+        dbService.findRecent().forEach(
                 timetableBE -> routes.computeIfAbsent(timetableBE.origin, key -> new HashSet<>()).add(timetableBE.destination));
         return routes;
     }

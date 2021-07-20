@@ -37,14 +37,15 @@ public class DbService {
         }
     }
 
-    public List<TimetableBE> findAll() {
-        return TimetableBE.listAll();
+    public List<TimetableBE> findRecent() {
+        return TimetableBE.find("plannedDeparture >= ?1",
+                Timestamp.from(Instant.now().minus(28, ChronoUnit.DAYS))).list();
     }
 
     public List<TimetableBE> findByOriginAndDestination(String origin, String destination) {
         Objects.requireNonNull(origin);
         Objects.requireNonNull(destination);
-        return TimetableBE.find("origin = ?1 and destination = ?2 and plannedDeparture >= ?3",
+        return TimetableBE.find("origin = ?1 and destination = ?2 and plannedDeparture >= ?3 and arrival is not null",
                 Sort.by("plannedDeparture"),
                 origin, destination, Timestamp.from(Instant.now().minus(28, ChronoUnit.DAYS))).list();
     }

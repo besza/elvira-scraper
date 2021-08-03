@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,12 +52,17 @@ public class ElviraScraper {
         scrape("BUDAPEST*", "Nyíregyháza");
         scrape("BUDAPEST*", "Székesfehérvár");
         scrape("BUDAPEST*", "Szob");
-        scrape("BUDAPEST*", "Szolnok");
+        scrape("Budapest-Keleti", "Szolnok");
     }
 
     private void scrape(String origin, String destination) {
+        // TODO: we dont need context capture anymore I guess.. or do we?
         threadContext.withContextCapture(client.sendAsync(buildRequest(origin, destination), HttpResponse.BodyHandlers.ofString(StandardCharsets.ISO_8859_1)))
                 .thenApplyAsync(response -> parse(response.body()), executor)
+                .exceptionally(ex -> {
+                    log.info("Shit is fucked up " + ex.getMessage());
+                    return Collections.emptyList();
+                })
                 .thenAcceptAsync(entities -> dbService.save(entities), executor);
     }
 

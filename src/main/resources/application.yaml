@@ -40,4 +40,4 @@ app:
   database:
     host: ${PGHOST}
   scraper:
-    cron: "0 30 21 * * ?"
+    cron: "0 30 22 * * ?"
